@@ -17,7 +17,7 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
-Installed Picker dependency
+Installed Picker dependency to for ability to select an option from a list of choices
    ```bash
    npm install @react-native-picker/picker
 
