@@ -14,7 +14,7 @@ export default function HomeScreen() {
 
       <Button title="View Bugs List" onPress={() => router.push('/bug')} />
 
-      {/* Add more buttons or dashboard info here as needed */}
+ 
     </View>
   );
 }
