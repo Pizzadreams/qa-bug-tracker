@@ -8,14 +8,19 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bug Tracker Dashboard</Text>
+      <Text style={styles.title}>Bug Tracker App</Text>
+      
+
 
       <Button title="Report New Bug" onPress={() => router.push('/bug/new')} />
 
       <Button title="View Bugs List" onPress={() => router.push('/bug')} />
 
+      <Button title="View Project Dashboard" onPress={() => router.push('/bug/dashboard')} />
+
       {/* Add more buttons or dashboard info here as needed */}
     </View>
+    
   );
 }
 
