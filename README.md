@@ -17,11 +17,17 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
-Installed Picker dependency to for ability to select an option from a list of choices
+Installed Picker dependency to for ability to select an option from a list of choices:
    ```bash
    npm install @react-native-picker/picker
 
    ```
+
+Installed SQLite for app integrated CRUD functionality:
+   ```bash
+   npx expo install expo-sqlite
+   ```
+
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
