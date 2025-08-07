@@ -42,10 +42,13 @@ export default function DashboardScreen() {
   };
 
   // Example: View/manage a project
-  const handleViewProject = (id: string) => {
-    // Navigate to a dedicated project detail screen in your app (future)
-    router.push(`/project/${id}`);
-  };
+const handleViewProject = (id: string) => {
+  router.push({
+    pathname: '/',
+    params: { id },
+  });
+};
+
 
   return (
     <View style={styles.container}>
@@ -74,7 +77,7 @@ export default function DashboardScreen() {
             </View>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#666' }}>No projects yet.</Text>}
+        ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#777' }}>No projects yet.</Text>}
       />
 
       {/* You can still keep links to bugs feature, etc */}

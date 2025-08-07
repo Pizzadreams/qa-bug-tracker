@@ -16,7 +16,7 @@ export default function HomeScreen() {
 
       <Button title="View Bugs List" onPress={() => router.push('/bug')} />
 
-      <Button title="View Project Dashboard" onPress={() => router.push('/bug/dashboard')} />
+      <Button title="View Project Dashboard" onPress={() => router.push('/project')} />
 
       {/* Add more buttons or dashboard info here as needed */}
     </View>
