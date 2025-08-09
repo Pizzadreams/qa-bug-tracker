@@ -1,32 +1,37 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Button, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Button, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-
-type Project = {
-  id: string;
-  name: string;
-  description: string;
-};
+import { useDatabase, Project } from '../../hooks/useDatabase'; 
 
 export default function ProjectListScreen() {
   const router = useRouter();
+  const { isReady, getProjects } = useDatabase();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Dummy projects state; replace with persistent storage or context later
-  const [projects, setProjects] = useState<Project[]>([
-    { id: '1', name: 'Website Redesign', description: 'Improve UI and UX' },
-    { id: '2', name: 'Mobile App Launch', description: 'Release Android and iOS apps' },
-  ]);
+  useEffect(() => {
+    if (isReady) {
+      getProjects()
+        .then(setProjects)
+        .finally(() => setLoading(false))
+        .catch(console.error);
+    }
+  }, [isReady]);
+
+  if (!isReady || loading) {
+    return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center' }} />;
+  }
 
   return (
     <View style={styles.container}>
       <Button title="Add New Project" onPress={() => router.push('/project/new')} />
       <FlatList
         data={projects}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.projectCard}
-            onPress={() => router.push({ pathname: '/project/[id]', params: { id: item.id } })}
+            onPress={() => router.push({ pathname: '/project/[id]', params: { id: item.id.toString() } })}
           >
             <Text style={styles.projectName}>{item.name}</Text>
             <Text style={styles.projectDesc}>{item.description}</Text>
