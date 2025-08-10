@@ -4,6 +4,7 @@ import { View, Button, FlatList, TouchableOpacity, StyleSheet } from 'react-nati
 import { useRouter } from 'expo-router';
 import BugCard from '../../components/BugCard';
 import { Bug } from '../../types/bug';
+const [bugs, setBugs] = useState<Bug[]>([]);
 
 export default function BugListScreen() {
   // For MVP, using local state. Later move to context or global store.

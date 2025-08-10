@@ -1,7 +1,8 @@
 // app/home.tsx
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import 'setimmediate';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -9,18 +10,10 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bug Tracker App</Text>
-      
-
-
       <Button title="Report New Bug" onPress={() => router.push('/bug/new')} />
-
       <Button title="View Bugs List" onPress={() => router.push('/bug')} />
-
       <Button title="View Project Dashboard" onPress={() => router.push('/project')} />
-
-      {/* Add more buttons or dashboard info here as needed */}
     </View>
-    
   );
 }
 

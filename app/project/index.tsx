@@ -1,50 +1,85 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Button, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, TextInput, FlatList, TouchableOpacity, Button, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useDatabase, Project } from '../../hooks/useDatabase'; 
+import { getDBConnection, createTables, getProjects, insertProject, deleteProject, Project } from '../../db/useDatabase';
 
 export default function ProjectListScreen() {
-  const router = useRouter();
-  const { isReady, getProjects } = useDatabase();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newName, setNewName] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const router = useRouter();
 
-  useEffect(() => {
-    if (isReady) {
-      getProjects()
-        .then(setProjects)
-        .finally(() => setLoading(false))
-        .catch(console.error);
+  const loadData = useCallback(async () => {
+    try {
+      const db = await getDBConnection();
+      await createTables(db);
+      const items = await getProjects(db);
+      setProjects(items);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
-  }, [isReady]);
+  }, []);
+    
+  useEffect(() => { loadData(); }, [loadData]);
 
-  if (!isReady || loading) {
-    return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center' }} />;
+  const addProject = async () => {
+    if (!newName.trim()) return;
+    const db = await getDBConnection();
+    await insertProject(db, { name: newName, description: newDesc });
+    setNewName('');
+    setNewDesc('');
+    loadData();
+  };
+
+  const removeProject = async (id: number) => {
+    const db = await getDBConnection();
+    await deleteProject(db, id);
+    loadData();
+  };
+
+  if (loading) {
+    return <ActivityIndicator style={{flex:1}} />;
   }
+
 
   return (
     <View style={styles.container}>
-      <Button title="Add New Project" onPress={() => router.push('/project/new')} />
       <FlatList
         data={projects}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.projectCard}
-            onPress={() => router.push({ pathname: '/project/[id]', params: { id: item.id.toString() } })}
+            onPress={() => router.push(`/project/${item.id}`)}
           >
-            <Text style={styles.projectName}>{item.name}</Text>
-            <Text style={styles.projectDesc}>{item.description}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.projectName}>{item.name}</Text>
+              <Text style={styles.projectDesc}>{item.description}</Text>
+            </View>
+            <Button title="Delete" onPress={() => removeProject(item.id)} />
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>No projects yet.</Text>}
       />
+
+      <TextInput style={styles.input} value={newName} onChangeText={setNewName} placeholder="Project name" />
+      <TextInput style={styles.input} value={newDesc} onChangeText={setNewDesc} placeholder="Project description" />
+      <Button title="Add Project" onPress={addProject} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
+  input: {
+    borderWidth: 1,
+    borderRadius: 4,
+    marginVertical: 8,
+    padding: 8,
+    borderColor: '#ccc',
+  },
   projectCard: {
     backgroundColor: '#f0f0f0',
     padding: 16,
@@ -53,7 +88,7 @@ const styles = StyleSheet.create({
   },
   projectName: {
     fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: 22,
   },
   projectDesc: {
     color: '#555',
