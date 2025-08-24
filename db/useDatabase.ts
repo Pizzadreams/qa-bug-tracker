@@ -1,6 +1,4 @@
-import { enablePromise, openDatabase, SQLiteDatabase } from 'react-native-sqlite-storage';
-
-enablePromise(true);
+import * as SQLite from 'expo-sqlite';
 
 export type Project = {
   id: number;
@@ -17,93 +15,78 @@ export type Bug = {
   status?: string;
 };
 
-const projectTable = 'projects';
-const bugTable = 'bugs';
+const DB_NAME = 'bugtracker.db';s
 
-export const getDBConnection = async (): Promise<SQLiteDatabase> => {
-  return openDatabase({ name: 'bugtracker.db', location: 'default' });
+export const getDBConnection = () => {
+  return SQLite.openDatabaseSync(DB_NAME);
 };
 
-export const createTables = async (db: SQLiteDatabase) => {
-  await db.executeSql(
-    `CREATE TABLE IF NOT EXISTS ${projectTable} (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT
-    );`
-  );
-
-  await db.executeSql(
-    `CREATE TABLE IF NOT EXISTS ${bugTable} (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      projectId INTEGER,
-      title TEXT NOT NULL,
-      description TEXT,
-      severity TEXT,
-      status TEXT,
-      FOREIGN KEY (projectId) REFERENCES ${projectTable}(id) ON DELETE CASCADE
-    );`
-  );
-};
-
-/* ==== PROJECT CRUD ==== */
-export const getProjects = async (db: SQLiteDatabase): Promise<Project[]> => {
-  const results = await db.executeSql(`SELECT * FROM ${projectTable};`);
-  const projects: Project[] = [];
-  results.forEach(r => {
-    for (let i = 0; i < r.rows.length; i++) projects.push(r.rows.item(i));
+// Create tables using transaction
+export const createTables = (db: SQLite.SQLiteDatabase) => {
+  db.transaction(tx => {
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS projects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT
+      );`
+    );
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS bugs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        projectId INTEGER,
+        title TEXT NOT NULL,
+        description TEXT,
+        severity TEXT,
+        status TEXT,
+        FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE
+      );`
+    );
   });
-  return projects;
 };
 
-export const insertProject = async (db: SQLiteDatabase, p: Omit<Project, 'id'>) => {
-  await db.executeSql(
-    `INSERT INTO ${projectTable} (name, description) VALUES (?, ?);`,
-    [p.name, p.description || null]
-  );
-};
-
-export const updateProject = async (db: SQLiteDatabase, p: Project) => {
-  await db.executeSql(
-    `UPDATE ${projectTable} SET name = ?, description = ? WHERE id = ?;`,
-    [p.name, p.description || null, p.id]
-  );
-};
-
-export const deleteProject = async (db: SQLiteDatabase, id: number) => {
-  await db.executeSql(`DELETE FROM ${projectTable} WHERE id = ?;`, [id]);
-};
-
-/* ==== BUG CRUD (scoped to a project) ==== */
-export const getBugsByProject = async (db: SQLiteDatabase, projectId: number): Promise<Bug[]> => {
-  const results = await db.executeSql(
-    `SELECT * FROM ${bugTable} WHERE projectId = ?;`,
-    [projectId]
-  );
-  const bugs: Bug[] = [];
-  results.forEach(r => {
-    for (let i = 0; i < r.rows.length; i++) bugs.push(r.rows.item(i));
+export const getProjects = (db: SQLite.SQLiteDatabase): Promise<Project[]> => {
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        `SELECT * FROM projects;`,
+        [],
+        (_, result) => {
+          const projects: Project[] = [];
+          for (let i = 0; i < result.rows.length; i++) {
+            projects.push(result.rows.item(i));
+          }
+          resolve(projects);
+        },
+        (_, error) => {
+          reject(error);
+          return false;
+        }
+      );
+    });
   });
-  return bugs;
 };
 
-export const insertBug = async (db: SQLiteDatabase, b: Omit<Bug, 'id'>) => {
-  await db.executeSql(
-    `INSERT INTO ${bugTable} (projectId, title, description, severity, status)
-     VALUES (?, ?, ?, ?, ?);`,
-    [b.projectId, b.title, b.description || null, b.severity || null, b.status || null]
-  );
+export const getBugsByProject = (db: SQLite.SQLiteDatabase, projectId: number): Promise<Bug[]> => {
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        `SELECT * FROM bugs WHERE projectId = ?;`,
+        [projectId],
+        (_, result) => {
+          const bugs: Bug[] = [];
+          for (let i = 0; i < result.rows.length; i++) {
+            bugs.push(result.rows.item(i));
+          }
+          resolve(bugs);
+        },
+        (_, error) => {
+          reject(error);
+          return false;
+        }
+      );
+    });
+  });
 };
 
-export const updateBug = async (db: SQLiteDatabase, b: Bug) => {
-  await db.executeSql(
-    `UPDATE ${bugTable}
-     SET title = ?, description = ?, severity = ?, status = ?
-     WHERE id = ?;`,
-    [b.title, b.description || null, b.severity || null, b.status || null, b.id]
-  );
-};
-
-export const deleteBug = async (db: SQLiteDatabase, id: number) => {
-  await db.executeSql(`DELETE FROM ${bugTable} WHERE id = ?;`, [id]);
-};
+// Similarly add insertProject, updateProject, insertBug, updateBug, delete functions following this pattern
