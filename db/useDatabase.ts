@@ -15,23 +15,25 @@ export type Bug = {
   status?: string;
 };
 
-const DB_NAME = 'bugtracker.db';s
+const DB_NAME = 'bugtracker.db';
 
-export const getDBConnection = () => {
+// Open the database synchronously.
+// For modern Expo, you can also use openDatabaseAsync()
+export const getDBConnection = (): SQLite.SQLiteDatabase => {
   return SQLite.openDatabaseSync(DB_NAME);
 };
 
-// Create tables using transaction
-export const createTables = (db: SQLite.SQLiteDatabase) => {
-  db.transaction(tx => {
-    tx.executeSql(
+// Create tables using transactionAsync and executeSqlAsync
+export const createTables = async (db: SQLite.SQLiteDatabase): Promise<void> => {
+  await db.transactionAsync(async (tx) => {
+    await tx.executeSqlAsync(
       `CREATE TABLE IF NOT EXISTS projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         description TEXT
       );`
     );
-    tx.executeSql(
+    await tx.executeSqlAsync(
       `CREATE TABLE IF NOT EXISTS bugs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         projectId INTEGER,
@@ -45,48 +47,24 @@ export const createTables = (db: SQLite.SQLiteDatabase) => {
   });
 };
 
-export const getProjects = (db: SQLite.SQLiteDatabase): Promise<Project[]> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        `SELECT * FROM projects;`,
-        [],
-        (_, result) => {
-          const projects: Project[] = [];
-          for (let i = 0; i < result.rows.length; i++) {
-            projects.push(result.rows.item(i));
-          }
-          resolve(projects);
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
-      );
-    });
+// Get all projects
+export const getProjects = async (db: SQLite.SQLiteDatabase): Promise<Project[]> => {
+  return await db.readTransactionAsync(async (tx) => {
+    const result = await tx.executeSqlAsync('SELECT * FROM projects;');
+    return result.rows._array as Project[];
   });
 };
 
-export const getBugsByProject = (db: SQLite.SQLiteDatabase, projectId: number): Promise<Bug[]> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        `SELECT * FROM bugs WHERE projectId = ?;`,
-        [projectId],
-        (_, result) => {
-          const bugs: Bug[] = [];
-          for (let i = 0; i < result.rows.length; i++) {
-            bugs.push(result.rows.item(i));
-          }
-          resolve(bugs);
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        }
-      );
-    });
+// Get bugs for a specific project
+export const getBugsByProject = async (
+  db: SQLite.SQLiteDatabase,
+  projectId: number
+): Promise<Bug[]> => {
+  return await db.readTransactionAsync(async (tx) => {
+    const result = await tx.executeSqlAsync('SELECT * FROM bugs WHERE projectId = ?;', [projectId]);
+    return result.rows._array as Bug[];
   });
 };
 
-// Similarly add insertProject, updateProject, insertBug, updateBug, delete functions following this pattern
+// Insert a new project
+export const insertProject = async (db: SQLite.SQLiteDatabase, p: Omit<Project
