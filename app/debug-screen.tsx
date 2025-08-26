@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Button, StyleSheet } from "react-native";
-import { getDBConnection, createTables, getProjects, getBugsByProject } from "../db/useDatabase";
+import { getDBConnection, createTables, getProjects, getBugsByProject, Project, Bug } from "../db/useDatabase";
 
 export default function DebugScreen() {
-  const [projects, setProjects] = useState([]);
-  const [bugs, setBugs] = useState([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [bugs, setBugs] = useState<Bug[]>([]);
 
   const loadData = async () => {
     const db = await getDBConnection();
@@ -13,7 +13,6 @@ export default function DebugScreen() {
     const projs = await getProjects(db);
     setProjects(projs);
 
-    // Optionally: load bugs for the first project, or all bugs if you adjust your function
     if (projs.length > 0) {
       const firstProjectId = projs[0].id;
       const projectBugs = await getBugsByProject(db, firstProjectId);
