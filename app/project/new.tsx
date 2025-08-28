@@ -15,6 +15,7 @@ export default function NewProjectScreen() {
     }
     
     const db = await SQLite.openDatabaseAsync('bugtracker.db');
+    
     // Create projects table if it doesn't exist
     await db.execAsync(
       `CREATE TABLE IF NOT EXISTS projects (
