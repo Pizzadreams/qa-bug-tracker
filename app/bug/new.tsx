@@ -1,6 +1,6 @@
 // app/bug/new.tsx
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { Bug } from '../../types/bug';
@@ -15,6 +15,17 @@ export default function BugFormScreen() {
     if (!title.trim()) return;
     // TODO: Save bug in global state or backend
     router.back();
+  };
+
+    const handleGoBack = () => {
+    Alert.alert(
+      'Discard changes?',
+      'Are you sure you want to go back? Unsaved changes will be lost.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Go Back', style: 'destructive', onPress: () => router.back() },
+      ]
+    );
   };
 
   return (
@@ -42,9 +53,14 @@ export default function BugFormScreen() {
         <Picker.Item label="High" value="High" />
       </Picker>
       <Button title="Submit Bug" onPress={handleSubmit} />
+
+      <View style={{ marginTop: 12 }}>
+        <Button title="Go Back" color="red" onPress={router.back} />
+      </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
