@@ -4,7 +4,7 @@ import { View, Text, Button, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Bug } from '../../types/bug';
 
-// For MVP, static data here; later move to shared state or backend
+// For MVP, static data here; later I will move to shared state or backend
 const bugs: Bug[] = [
   {
     id: '1',

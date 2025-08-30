@@ -12,7 +12,7 @@ type Project = {
 export default function DashboardScreen() {
   const router = useRouter();
 
-  // Example state for your projects list (replace with context or persistence later)
+  // Example state for projects list (replace with context or persistence later)
   const [projects, setProjects] = useState<Project[]>([
     { id: '1', name: 'Website Redesign', description: 'Track UI/UX bugs' },
     { id: '2', name: 'Mobile App', description: 'Android and iOS release' },
